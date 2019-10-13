@@ -1,0 +1,37 @@
+// Using query builder, pending query object
+//check redis cache before execute the query
+
+const query = Person.
+  find({ occupation: /host/ }).
+  where('name.last').equals('Ghost').
+  where('age').gt(17).lt(66).
+  where('likes').in(['vaporizing', 'talking']).
+  limit(10).
+  sort('-occupation').
+  select('name occupation');
+
+// query.getOptions();
+// return query string like:
+// {find:{occuption: 'host', where:[{'name.last':'Ghost'}]}} 
+
+
+//how to execute query originally (without redis checking)
+//query.exec((err, result) => console.log(result));
+//same as 
+//query.then(result => console.log(result)); // behine the scene calls exec
+//same as
+//const result = await query;
+
+//exec query with redis checking
+query.exec = function() {
+    const result = client.get('query key');
+    if(result) return result;
+
+    const result = runTheOriginalExecFunction();
+
+    //then save the value in redis
+    client.set('query key', result);
+
+    return result;
+}
+
