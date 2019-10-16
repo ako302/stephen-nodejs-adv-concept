@@ -5,7 +5,9 @@ const userFactory = require('../factories/userFactory');
 class CustomPage {
     static async build() {
         const browser = await puppeteer.launch({
-            headless:false
+            headless:true,
+            args: ['--no-sandbox']//coz Travis will assign virtual machine setting which makes the test take more time to run,
+            //by putting --no-sandbox flag, the setting config can be skipped
         });
 
         const page = await browser.newPage();
@@ -30,7 +32,7 @@ class CustomPage {
     
         await this.page.setCookie({name: 'session', value: session});
         await this.page.setCookie({name: 'session.sig', value: sig});
-        await this.page.goto('localhost:3000/blogs');
+        await this.page.goto('http://localhost:3000/blogs');
         await this.page.waitFor('a[href="/auth/logout"]');//wait for the component to finish loading
     
     }
